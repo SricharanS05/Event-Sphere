@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,15 +30,27 @@ public class TeamService {
                                 .toString()
                                 .substring(0, 6)
         );
+
+        if (team.getMembers() == null) {
+            team.setMembers(new HashSet<>());
+        }
+
         team.getMembers().add(email);
 
         return teamRepository.save(team);
     }
 
     public Team joinTeam(String code, String email) {
+
         Team team = teamRepository.findByTeamCode(code)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        if (team.getMembers() == null) {
+            team.setMembers(new HashSet<>());
+        }
+
         team.getMembers().add(email);
+
         return teamRepository.save(team);
     }
 
@@ -46,12 +59,26 @@ public class TeamService {
     }
 
     public List<Team> getTeamsByMemberEmail(String email) {
+
         List<Team> allTeams = teamRepository.findByMembersContaining(email);
-        return allTeams.stream().filter(team -> {
-            if (team.getEventId() == null) return true;
-            Event event = eventRepository.findById(team.getEventId()).orElse(null);
-            if (event == null) return true;
-            return !LocalDate.now().isAfter(event.getEventDate());
-        }).collect(Collectors.toList());
+
+        return allTeams.stream()
+                .filter(team -> {
+
+                    if (team.getEventId() == null) {
+                        return true;
+                    }
+
+                    Event event = eventRepository
+                            .findById(team.getEventId())
+                            .orElse(null);
+
+                    if (event == null) {
+                        return true;
+                    }
+
+                    return !LocalDate.now().isAfter(event.getEventDate());
+                })
+                .collect(Collectors.toList());
     }
 }
