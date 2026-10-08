@@ -23,7 +23,6 @@ jobs:
           java-version: '21'
           cache: maven
 
-
       - name: Build backend
         working-directory: event-management-backend
         run: bash mvnw clean package -DskipTests
@@ -60,3 +59,38 @@ jobs:
 
       - name: Push frontend Docker image
         run: docker push sricharan1407/event-sphere-frontend:latest
+
+  deploy:
+    name: Deploy to AWS EC2
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull sricharan1407/event-sphere-backend:latest
+            docker pull sricharan1407/event-sphere-frontend:latest
+
+            docker rm -f event-sphere-backend || true
+            docker rm -f event-sphere-frontend || true
+
+            docker run -d \
+              --name event-sphere-backend \
+              --env-file /etc/event-sphere/backend.env \
+              -p 8080:8080 \
+              --restart unless-stopped \
+              sricharan1407/event-sphere-backend:latest
+
+            docker run -d \
+              --name event-sphere-frontend \
+              -p 4173:80 \
+              --restart unless-stopped \
+              sricharan1407/event-sphere-frontend:latest
+
+            docker ps
