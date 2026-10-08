@@ -94,3 +94,4 @@ jobs:
               sricharan1407/event-sphere-frontend:latest
 
             docker ps
+            # CD deployment completed
