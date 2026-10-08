@@ -2,7 +2,7 @@ import axios from 'axios';
 import { isTokenExpired } from '@/utils/jwt';
 
 const api = axios.create({
- baseURL: 'http://localhost:8080',
+ baseURL: 'http://65.0.178.251:8080',
  headers: {
  'Content-Type': 'application/json',
  },
