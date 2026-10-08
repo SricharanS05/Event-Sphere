@@ -23,9 +23,10 @@ jobs:
           java-version: '21'
           cache: maven
 
+
       - name: Build backend
         working-directory: event-management-backend
-        run: ./mvnw clean package -DskipTests
+        run: bash mvnw clean package -DskipTests
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
